@@ -1,4 +1,4 @@
-//my_path_service:
+//alpha_path_service:
 // example showing how to receive a nav_msgs/Path request
 // run with complementary my_path_client
 // responds immediately to ack new path...but execution takes longer
