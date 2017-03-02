@@ -9,7 +9,7 @@
 #include <cmath>//pow
 
 
-const double MIN_SAFE_DISTANCE = 2.0; // set alarm if anything is within 0.5m of the front of robot
+const double MIN_SAFE_DISTANCE = 1.0; // set alarm if anything is within 0.5m of the front of robot
 
 // these values to be set within the laser callback
 float ping_dist_in_front_=3.0; // global var to hold length of a SINGLE LIDAR ping--in front
@@ -29,6 +29,7 @@ ros::Publisher lidar_alarm_publisher_;
 ros::Publisher lidar_dist_publisher_;
 // really, do NOT want to depend on a single ping.  Should consider a subset of pings
 // to improve reliability and avoid false alarms or failure to see an obstacle
+
 
 void laserCallback(const sensor_msgs::LaserScan& laser_scan) {
     if (ping_index_<0)  {
