@@ -54,7 +54,7 @@ void laserCallback(const sensor_msgs::LaserScan& laser_scan) {
 
    for (int i = (ping_index_ - 80); i < (ping_index_ + 80); ++i){
 	ping_dist_current_angle_ = laser_scan.ranges[i];//get range at angle of interest
-	current_alarm_threshold_ = 1.0 - pow((abs(i - ping_index_) / 250),3);//varies from 0 to 1 by angle
+	current_alarm_threshold_ = (1.0 - pow((abs(i - ping_index_) / 250),3))/4;//varies from 0 to 1 by angle
   current_alarm_threshold_ *= 3.0;
   //current_alarm_threshold_ = MIN_SAFE_DISTANCE;
 	//ROS_INFO("ping dist at current angle = %f",ping_dist_current_angle_);
