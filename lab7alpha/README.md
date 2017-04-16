@@ -13,10 +13,16 @@ roslaunch mobot_urdf mobot_w_lidar.launch
 export ROS_IP=129.22.143.20
 export ROS_MASTER_URI=http://129.22.148.227:11311
 
+on jinx:
+export ROS_MASTER_URI=http://129.22.148.227:11311
+export ROS_IP=129.22.148.227
+
+--------------------------------------------
 cd ~/ros_ws/src/learning_ros/maps/gl2_map/, then:
 rosrun map_server map_server gl2_map.yaml
 rosrun amcl amcl
 rosrun mobot_drifty_odom mobot_drifty_odom
+---rosrun odom_tf odom_tf_demo drifty_odom:=odom
 rosrun odom_tf odom_tf_demo
 
 rosrun lab7alpha alpha_lidar_alarm
