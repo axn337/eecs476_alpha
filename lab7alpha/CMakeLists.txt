@@ -13,6 +13,11 @@ find_package(Boost REQUIRED COMPONENTS system thread)
 # C++0x support - not quite the same as final C++11!
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
+find_package(cmake_modules REQUIRED)
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
+add_definitions(${EIGEN_DEFINITIONS})
+
 # Libraries
 # cs_add_libraries(my_lib src/my_lib.cpp)   
 cs_add_library(alpha_traj_builder src/alpha_traj_builder.cpp)   
@@ -22,6 +27,7 @@ cs_add_executable(alpha_lidar_alarm src/alpha_lidar_alarm.cpp)
 cs_add_executable(alpha_pub_des_state src/alpha_pub_des_state_main.cpp src/alpha_pub_des_state.cpp)
 cs_add_executable(alpha_pub_des_state_path_client src/alpha_pub_des_state_path_client.cpp)
 cs_add_executable(alpha_open_loop_controller src/alpha_open_loop_controller.cpp)
+cs_add_executable(alpha_lin_steering src/alpha_lin_steering.cpp)
 
 
 

@@ -7,18 +7,25 @@ A submession for assignment 6 in EECS476. Refer to the write up.
 roslaunch gazebo_ros empty_world.launch
 roslaunch exmpl_models add_glennan_2nd_flr.launch
 roslaunch mobot_urdf mobot_w_lidar.launch
-roscd exmpl_models/glennan_2nd_flr, then:
-rosrun map_server map_server glennan_2nd_flr_model_map.yaml
+
+
+-----------------------------------
+export ROS_IP=129.22.143.20
+export ROS_MASTER_URI=http://129.22.148.227:11311
+
+cd ~/ros_ws/src/learning_ros/maps/gl2_map/, then:
+rosrun map_server map_server gl2_map.yaml
 rosrun amcl amcl
 rosrun mobot_drifty_odom mobot_drifty_odom
 rosrun odom_tf odom_tf_demo
 
+rosrun lab7alpha alpha_lidar_alarm
 
 open loop:
 rosrun lab7alpha alpha_open_loop_controller
 
 lin_steering:
-rosrun lin_steering lin_steering_wrt_amcl
+rosrun lab7alpha alpha_lin_steering
 
 Running Publisher ans client:
 rosrun lab7alpha alpha_pub_des_state_path_client

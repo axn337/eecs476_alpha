@@ -55,12 +55,18 @@
 <build_depend>geometry_msgs</build_depend>
 <build_depend>nav_msgs</build_depend>
 
+<build_depend>xform_utils</build_depend>
+<build_depend>odom_tf</build_depend>
+
 <run_depend>geometry_msgs</run_depend>
 <run_depend>nav_msgs</run_depend>
   
   <run_depend>roscpp</run_depend>
 <run_depend>sensor_msgs</run_depend>
 <run_depend>std_msgs</run_depend>
+
+<run_depend>xform_utils</run_depend>
+<run_depend>odom_tf</run_depend>
 <!--    <run_depend>geometry_msgs</run_depend>
     <run_depend>nav_msgs</run_depend>
     <run_depend>traj_builder</run_depend> -->
