@@ -16,6 +16,7 @@ export ROS_MASTER_URI=http://129.22.148.227:11311
 on jinx:
 export ROS_MASTER_URI=http://129.22.148.227:11311
 export ROS_IP=129.22.148.227
+roslaunch launchers start_jinx.launch
 
 --------------------------------------------
 cd ~/ros_ws/src/learning_ros/maps/gl2_map/, then:
