@@ -23,8 +23,7 @@ cd ~/ros_ws/src/learning_ros/maps/gl2_map/, then:
 rosrun map_server map_server gl2_map.yaml
 rosrun amcl amcl
 rosrun mobot_drifty_odom mobot_drifty_odom
----rosrun odom_tf odom_tf_demo drifty_odom:=odom
-rosrun odom_tf odom_tf_demo
+rosrun odom_tf odom_tf_demo drifty_odom:=odom
 
 rosrun lab7alpha alpha_lidar_alarm
 
@@ -33,6 +32,7 @@ rosrun lab7alpha alpha_open_loop_controller
 
 lin_steering:
 rosrun lab7alpha alpha_lin_steering
+rosrun lin_sering lin_steering_wrt_amcl drifty_odom:=odom
 
 Running Publisher ans client:
 rosrun lab7alpha alpha_pub_des_state_path_client
