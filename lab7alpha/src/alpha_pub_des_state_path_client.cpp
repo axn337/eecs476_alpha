@@ -36,12 +36,16 @@ int main(int argc, char **argv) {
     geometry_msgs::PoseStamped pose_stamped;
     pose_stamped.header.frame_id = "world";
     geometry_msgs::Pose pose;
-
+    
+    double neg_x_dir=-1.57;
+    double pos_x_dir=1.57;
+    double neg_y_dir=0;
+    double pos_y_dir=-3.14;
    //initial
-    pose.position.y = 0.0; // say desired x-coord is -5
-    pose.position.x = -33.0;
+    pose.position.x = 0.0; // say desired x-coord is -5
+    pose.position.y = -31.0;
     pose.position.z = 0.0; // let's hope so!
-    quat = convertPlanarPhi2Quaternion(3.14);
+    quat = convertPlanarPhi2Quaternion(neg_x_dir);
     pose.orientation = quat;
     pose_stamped.pose = pose;
     path_srv.request.path.poses.push_back(pose_stamped);
@@ -64,31 +68,29 @@ int main(int argc, char **argv) {
     
     /*/
 	//third
-	quat = convertPlanarPhi2Quaternion(1.57);
+    quat = convertPlanarPhi2Quaternion(pos_y_dir);
     pose.position.y = 2.0;
     pose.orientation = quat;
     pose_stamped.pose = pose;
     path_srv.request.path.poses.push_back(pose_stamped);
     
     //fourth
-	quat = convertPlanarPhi2Quaternion(-1.57);
+    quat = convertPlanarPhi2Quaternion(neg_y_dir);
     pose.position.y = 0.0;
     pose.orientation = quat;
     pose_stamped.pose = pose;
     path_srv.request.path.poses.push_back(pose_stamped);
     
     //fifth
-	quat = convertPlanarPhi2Quaternion(0);    
+    quat = convertPlanarPhi2Quaternion(pos_x_dir);    
     pose.position.x = 0.0;
     pose.orientation = quat;
     pose_stamped.pose = pose;
     path_srv.request.path.poses.push_back(pose_stamped);
     
     //sixth
-	quat = convertPlanarPhi2Quaternion(1.57);
-    pose.position.y = 5.0;
+    quat = convertPlanarPhi2Quaternion(pos_y_dir);
     pose.orientation = quat;
-    pose_stamped.pose = pose;
     path_srv.request.path.poses.push_back(pose_stamped);
     
     client.call(path_srv);

@@ -42,8 +42,8 @@ SteeringController::SteeringController(ros::NodeHandle* nodehandle):nh_(*nodehan
     des_state_.header.stamp = ros::Time::now();   
 
     //initialize the twist command components, all to zero
-    twist_cmd_.linear.x = 0.0;
-    twist_cmd_.linear.y = 0.0;
+    twist_cmd_.linear.x = 5.00;
+    twist_cmd_.linear.y = 2.26;
     twist_cmd_.linear.z = 0.0;
     twist_cmd_.angular.x = 0.0;
     twist_cmd_.angular.y = 0.0;
