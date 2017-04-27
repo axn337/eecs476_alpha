@@ -1,4 +1,7 @@
 #include "alpha_pub_des_state.h"
+
+
+//TODO: write a response true if done with path
  
 //ExampleRosClass::ExampleRosClass(ros::NodeHandle* nodehandle):nh_(*nodehandle)
 
@@ -61,7 +64,7 @@ void AlphaDesStatePublisher::initializeServices() {
 }
 
 void AlphaDesStatePublisher::initializeSubscribers() {
-    alarm_subscriber_ = nh_.subscribe("/ps8_lidar_alarm", 1, &AlphaDesStatePublisher::alarmCB, this); // Modified by Jonathan
+    alarm_subscriber_ = nh_.subscribe("/alpha_lidar_alarm", 1, &AlphaDesStatePublisher::alarmCB, this); // Modified by Jonathan
     //dist_subscriber_ = nh_.subscribe("lidar_dist", 1, &AlphaDesStatePublisher::alarmCB, this); // Modified by Jonathan
     ESTOP_ = nh_.subscribe("/ESTOP", 1, &AlphaDesStatePublisher::estopCB, this); // Modified by Jonathan
 }
@@ -142,7 +145,7 @@ bool AlphaDesStatePublisher::flushPathQueueCB(std_srvs::TriggerRequest& request,
     return true;
 }
 
-bool AlphaDesStatePublisher::appendPathQueueCB(lab7alpha::pathRequest& request, lab7alpha::pathResponse& response) {
+bool AlphaDesStatePublisher::appendPathQueueCB(final_lab::pathRequest& request, final_lab::pathResponse& response) {
 
     int npts = request.path.poses.size();
     ROS_INFO("appending path queue with %d points", npts);

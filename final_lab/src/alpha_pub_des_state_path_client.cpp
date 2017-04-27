@@ -2,7 +2,7 @@
 // illustrates how to send a request to the append_path_queue_service service
 
 #include <ros/ros.h>
-#include <lab7alpha/path.h>
+#include <final_lab/path.h>
 #include <iostream>
 #include <string>
 #include <nav_msgs/Path.h>
@@ -22,7 +22,7 @@ geometry_msgs::Quaternion convertPlanarPhi2Quaternion(double phi) {
 int main(int argc, char **argv) {
     ros::init(argc, argv, "append_path_client");
     ros::NodeHandle n;
-    ros::ServiceClient client = n.serviceClient<lab7alpha::path>("append_path_queue_service");
+    ros::ServiceClient client = n.serviceClient<final_lab::path>("append_path_queue_service");
     geometry_msgs::Quaternion quat;
     
     while (!client.exists()) {
@@ -30,70 +30,46 @@ int main(int argc, char **argv) {
       ros::Duration(1.0).sleep();
     }
     ROS_INFO("connected client to service");
-    lab7alpha::path path_srv;
+    final_lab::path path_srv;
     
     //create some path points...this should be done by some intelligent algorithm, but we'll hard-code it here
     geometry_msgs::PoseStamped pose_stamped;
     pose_stamped.header.frame_id = "world";
     geometry_msgs::Pose pose;
-    
-    double neg_x_dir=-1.57;
-    double pos_x_dir=1.57;
-    double neg_y_dir=0;
-    double pos_y_dir=-3.14;
-   //initial
-    pose.position.x = 0.0; // say desired x-coord is -5
-    pose.position.y = -31.0;
+
+    pose.position.x = 3.7; // say desired x-coord is 5
+    pose.position.y = 0.0;
     pose.position.z = 0.0; // let's hope so!
-    quat = convertPlanarPhi2Quaternion(neg_x_dir);
+    quat = convertPlanarPhi2Quaternion(0);
     pose.orientation = quat;
     pose_stamped.pose = pose;
     path_srv.request.path.poses.push_back(pose_stamped);
-	
-	/*/
-	//first
-	quat = convertPlanarPhi2Quaternion(0);
-    pose.position.x = 0.0;
-    pose.orientation = quat;
+ 
+    pose.position.y = 2.1;
     pose_stamped.pose = pose;
     path_srv.request.path.poses.push_back(pose_stamped);
 
-	
-	//second
-	quat = convertPlanarPhi2Quaternion(-1.57);    
-    pose.position.y = -33.0;
-    pose.orientation = quat;
-    pose_stamped.pose = pose;
-    path_srv.request.path.poses.push_back(pose_stamped);
-    
-    /*/
-	//third
-    quat = convertPlanarPhi2Quaternion(pos_y_dir);
-    pose.position.y = 2.0;
-    pose.orientation = quat;
-    pose_stamped.pose = pose;
-    path_srv.request.path.poses.push_back(pose_stamped);
-    
-    //fourth
-    quat = convertPlanarPhi2Quaternion(neg_y_dir);
+    //return path
+
+
     pose.position.y = 0.0;
-    pose.orientation = quat;
     pose_stamped.pose = pose;
     path_srv.request.path.poses.push_back(pose_stamped);
-    
-    //fifth
-    quat = convertPlanarPhi2Quaternion(pos_x_dir);    
+ 
     pose.position.x = 0.0;
-    pose.orientation = quat;
     pose_stamped.pose = pose;
     path_srv.request.path.poses.push_back(pose_stamped);
     
-    //sixth
-    quat = convertPlanarPhi2Quaternion(pos_y_dir);
-    pose.orientation = quat;
-    path_srv.request.path.poses.push_back(pose_stamped);
     
     client.call(path_srv);
+
+    while(path_srv.response.status!=true){
+	ros::Duration(0.1).sleep();
+    }
+
+     ROS_INFO("path executed");
+
+	
 
     return 0;
 }

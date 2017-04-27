@@ -50,6 +50,7 @@ cs_add_executable(alpha_lin_steering src/alpha_lin_steering.cpp)
 #the following is required, if desire to link a node in this package with a library created in this same package
 # edit the arguments to reference the named node and named library within this package
 # target_link_library(example my_lib)
+target_link_libraries(alpha_pub_des_state alpha_traj_builder)
 
 cs_install()
 cs_export()
