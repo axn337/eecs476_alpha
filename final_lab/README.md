@@ -6,7 +6,11 @@ A submession for final lab assignment in EECS476. Refer to the write up.
 
 ## Running tests/demos
 
-on Atlas: #atlas1 export ROS_IP=129.22.143.20 #atlas3 export ROS_IP=129.22.143.219 export ROS_MASTER_URI=http://129.22.148.227:11311
+on Atlas: #atlas1 
+export ROS_IP=129.22.143.20
+ #atlas3 
+export ROS_IP=129.22.143.219 
+export ROS_MASTER_URI=http://129.22.148.227:11311
 
 on jinx: export ROS_MASTER_URI=http://129.22.148.227:11311 export ROS_IP=129.22.148.227 roslaunch launchers start_jinx.launch
 
@@ -29,8 +33,8 @@ open loop:
 rosrun final_lab alpha_open_loop_controller
 
 lin_steering: 
-rosrun final_lab alpha_lin_steering drifty_odom:=odom 
-rosrun lin_steering lin_steering_wrt_amcl drifty_odom:=odom
+rosrun final_lab alpha_lin_steering 
+
 
 Running Publisher and client: 
 rosrun final_lab alpha_pub_des_state_path_client 

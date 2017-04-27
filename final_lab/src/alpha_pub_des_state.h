@@ -7,16 +7,16 @@
 #include <std_msgs/Float64.h>
 #include <std_msgs/Bool.h>
 #include <std_srvs/Trigger.h>
-#include <lab7alpha/path.h>
+#include <final_lab/path.h>
 #include <std_msgs/Float64.h>
 
 //constants and parameters:
 const double dt = 0.02; //send desired-state messages at fixed rate, e.g. 0.02 sec = 50Hz
 //dynamic parameters: should be tuned for target system
-const double accel_max = 0.25; //1m/sec^2
+const double accel_max = 0.2; //1m/sec^2
 const double alpha_max = 0.2; // rad/sec^2
-const double speed_max = 0.3; //1 m/sec
-const double omega_max = 0.3; //1 rad/sec
+const double speed_max = 0.2; //1 m/sec
+const double omega_max = 0.2; //1 rad/sec
 const double path_move_tol = 0.01; // if path points are within 1cm, fuggidaboutit
 
 const int E_STOPPED = 0; //define some mode keywords
@@ -89,7 +89,7 @@ private:
     bool estopServiceCallback(std_srvs::TriggerRequest& request, std_srvs::TriggerResponse& response);
     bool clearEstopServiceCallback(std_srvs::TriggerRequest& request, std_srvs::TriggerResponse& response);
     bool flushPathQueueCB(std_srvs::TriggerRequest& request, std_srvs::TriggerResponse& response);
-    bool appendPathQueueCB(lab7alpha::pathRequest& request,lab7alpha::pathResponse& response);
+    bool appendPathQueueCB(final_lab::pathRequest& request,final_lab::pathResponse& response);
 
 public:
     AlphaDesStatePublisher(ros::NodeHandle& nh);//constructor
