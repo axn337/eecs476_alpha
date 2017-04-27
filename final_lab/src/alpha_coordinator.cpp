@@ -12,7 +12,7 @@
 #include <object_finder/objectFinderAction.h>
 #include <object_grabber/object_grabberAction.h>
 #include <coordinator/OpenLoopNavSvc.h>
-#include <move_base_msgs/MoveBaseAction.h>
+#include <mobot_pub_des_state/path.h>
 #include <Eigen/Eigen>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
@@ -102,18 +102,131 @@ int main(int argc, char **argv) {
     coordinator::ManipTaskGoal goal;
     coordinator::OpenLoopNavSvc openLoopNavSvcMsg;
     tf::TransformListener tfListener;
-    geometry_msgs::PoseStamped current_pose;
-    move_base_msgs::MoveBaseGoal move_base_goal;
     XformUtils xform_utils; //instantiate an object of XformUtils
 
-ROS_INFO("Waiting for block to be grabbed");
+    actionlib::SimpleActionClient<coordinator::ManipTaskAction> action_client("manip_task_action_service", true);
+    ros::ServiceClient nav_move_client = nh.serviceClient<coordinator::OpenLoopNavSvc>("open_loop_nav_service");
+
+    // attempt to connect to the server:
+    ROS_INFO("waiting for the manipulation action server: ");
+    bool server_exists = false;
+    while ((!server_exists)&&(ros::ok())) {
+        server_exists = action_client.waitForServer(ros::Duration(0.5)); // 
+        ros::spinOnce();
+        ros::Duration(0.5).sleep();
+        ROS_INFO("retrying...");
+    }
+    ROS_INFO("connected to action server"); // if here, then we connected to the server;
+
+    ROS_INFO("sending a goal: move arms to pre-pose");
+    g_goal_done = false;
+    goal.action_code = coordinator::ManipTaskGoal::MOVE_TO_PRE_POSE;
+    action_client.sendGoal(goal, &doneCb, &activeCb, &feedbackCb);
+    while (!g_goal_done) {
+        ros::Duration(0.1).sleep();
+    }
+    if (g_callback_status!= coordinator::ManipTaskResult::MANIP_SUCCESS)
+    {
+        ROS_ERROR("failed to move quitting");
+        return 0;
+    }
+    //send vision request to find table top:
+    ROS_INFO("sending a goal: seeking table top");
+    g_goal_done = false;
+    goal.action_code = coordinator::ManipTaskGoal::FIND_TABLE_SURFACE;
+
+    action_client.sendGoal(goal, &doneCb, &activeCb, &feedbackCb);
+    while (!g_goal_done) {
+        ros::Duration(0.1).sleep();
+    }
+    
+    //send vision goal to find block:
+    ROS_INFO("sending a goal: find block");
+    g_goal_done = false;
+    goal.action_code = coordinator::ManipTaskGoal::GET_PICKUP_POSE;
+    goal.object_code= ObjectIdCodes::TOY_BLOCK_ID;
+    goal.perception_source = coordinator::ManipTaskGoal::PCL_VISION;
+    action_client.sendGoal(goal, &doneCb, &activeCb, &feedbackCb);
+    while (!g_goal_done) {
+        ros::Duration(0.1).sleep();
+    }    
+    if (g_callback_status!= coordinator::ManipTaskResult::MANIP_SUCCESS)
+    {
+        ROS_ERROR("failed to find block quitting");
+        return 0;
+    }
+    g_object_pose = g_result.object_pose;
+    ROS_INFO_STREAM("object origin: (x,y,z) = ("<<g_object_pose.pose.position.x<<", "<<g_object_pose.pose.position.y<<", "
+              <<g_object_pose.pose.position.z<<")"<<endl);
+    ROS_INFO_STREAM("orientation: (qx,qy,qz,qw) = ("<<g_object_pose.pose.orientation.x<<","
+              <<g_object_pose.pose.orientation.y<<","
+              <<g_object_pose.pose.orientation.z<<","
+              <<g_object_pose.pose.orientation.w<<")"<<endl);    
+    
+    //send command to acquire block:
+    ROS_INFO("sending a goal: grab block");
+    g_goal_done = false;
+    goal.action_code = coordinator::ManipTaskGoal::GRAB_OBJECT;
+    goal.pickup_frame = g_result.object_pose;
+    goal.object_code= ObjectIdCodes::TOY_BLOCK_ID;
+    //goal.perception_source= coordinator::ManipTaskGoal::BLIND_MANIP;
+    action_client.sendGoal(goal, &doneCb, &activeCb, &feedbackCb);
+    while (!g_goal_done) {
+        ros::Duration(0.1).sleep();
+    }    
+        if (g_callback_status!= coordinator::ManipTaskResult::MANIP_SUCCESS)
+    {
+        ROS_ERROR("failed to grab block; quitting");
+        return 0;
+    }
+    
+    ROS_INFO("sending a goal: move arms to pre-pose");
+    g_goal_done = false;
+    goal.action_code = coordinator::ManipTaskGoal::MOVE_TO_PRE_POSE;
+    action_client.sendGoal(goal, &doneCb, &activeCb, &feedbackCb);
+    while (!g_goal_done) {
+        ros::Duration(0.1).sleep();
+    }
+        if (g_callback_status!= coordinator::ManipTaskResult::MANIP_SUCCESS)
+    {
+        ROS_ERROR("failed to move to pre-pose; quitting");
+        return 0;
+    }
+    
+    ROS_INFO("backing up");
+    openLoopNavSvcMsg.request.move_distance= -1.0; // back up 1m
+    nav_move_client.call(openLoopNavSvcMsg);
+    ros::Duration(1.0).sleep(); //wait to settle down
+    tfListener.lookupTransform("map","base_link", ros::Time(0), tfBaseLinkWrtMap);
+    current_pose = xform_utils.get_pose_from_stamped_tf(tfBaseLinkWrtMap);
+    xform_utils.printStampedPose(current_pose);    
+    double yaw = xform_utils.convertPlanarQuat2Phi(current_pose.pose.orientation);
+    ROS_INFO("yaw = %f",yaw);
+
+
 
 /////////////////////////////////////////////////////////
 
-ROS_INFO("Time to go back");
+    ROS_INFO("Time to go back");
 
-//flush path queue
+    mobot_pub_des_state::path path_srv;
+    
+    //create some path points...this should be done by some intelligent algorithm, but we'll hard-code it here
+    geometry_msgs::PoseStamped pose_stamped;
+    pose_stamped.header.frame_id = "world";
+    geometry_msgs::Pose pose;
+    pose.position.x = 4.0; // say desired x-coord is 5
+    pose.position.y = 0.0;
+    pose.position.z = 0.0; // let's hope so!
+    quat = convertPlanarPhi2Quaternion(0);
+    pose.orientation = quat;
+    pose_stamped.pose = pose;
+    path_srv.request.path.poses.push_back(pose_stamped);
+ 
+    pose.position.y = 2.5;
+    pose_stamped.pose = pose;
+    path_srv.request.path.poses.push_back(pose_stamped);
 
-
+    client.call(path_srv);
     return 0;
 }
