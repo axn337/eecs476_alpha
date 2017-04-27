@@ -1,10 +1,8 @@
-//lab groups alpha's modification of...
-// wsn example program to illustrate LIDAR processing.  1/23/15
-
 #include <ros/ros.h> //Must include this for all ROS cpp projects
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/Float32.h> //Including the Float32 class from std_msgs
 #include <std_msgs/Bool.h> // boolean message
+#include <std_srvs/Trigger.h>
 #include <stdlib.h>     /* abs */
 #include <cmath>//pow
 
@@ -20,6 +18,8 @@ double angle_increment_=0.0;
 double range_min_ = 0.0;
 double range_max_ = 0.0;
 bool laser_alarm_=false;
+bool triggered_ = false;
+std_srvs::Trigger srv;
 
 //new variables for my code below
 float ping_dist_current_angle_ = 3.0;
@@ -27,9 +27,10 @@ float current_alarm_threshold_ = 0.0;
 
 ros::Publisher lidar_alarm_publisher_;
 ros::Publisher lidar_dist_publisher_;
+ros::ServiceClient lidar_trigger_;
+ros::ServiceClient lidar_reset_;
 // really, do NOT want to depend on a single ping.  Should consider a subset of pings
 // to improve reliability and avoid false alarms or failure to see an obstacle
-
 
 void laserCallback(const sensor_msgs::LaserScan& laser_scan) {
     if (ping_index_<0)  {
@@ -51,14 +52,18 @@ void laserCallback(const sensor_msgs::LaserScan& laser_scan) {
    //as the ping index is dead ahead, and the angle increment is 1/1000 turn
 	//then check from ping_index_ - 150 to ping_index + 150 for the front section of robot
 
-   for (int i = (ping_index_ - 100); i < (ping_index_ + 100); ++i){
+   for (int i = (ping_index_ - 80); i < (ping_index_ + 80); ++i){
 	ping_dist_current_angle_ = laser_scan.ranges[i];//get range at angle of interest
-	current_alarm_threshold_ = 1.0 - pow((abs(i - ping_index_) / 250),3);//varies from 0 to 1 by angle
-	ROS_INFO("ping dist at current angle = %f",ping_dist_current_angle_);
+	current_alarm_threshold_ = (1.0 - pow((abs(i - ping_index_) / 250),3))/4;//varies from 0 to 1 by angle
+  current_alarm_threshold_ *= 3.0;
+  //current_alarm_threshold_ = MIN_SAFE_DISTANCE;
+	//ROS_INFO("ping dist at current angle = %f",ping_dist_current_angle_);
         if (ping_dist_current_angle_<current_alarm_threshold_) {//check against angle specific threshold
-            ROS_WARN("DANGER, WILL ROBINSON!!");
+            ROS_WARN("DANGER %f", laser_scan.ranges[181]);
             laser_alarm_=true;
-	    break;//exit the loop: don't need to check for more alarms
+            triggered_=true;
+            lidar_trigger_.call(srv);
+            break;//exit the loop: don't need to check for more alarms
         }
         else {
            laser_alarm_=false;
@@ -66,7 +71,6 @@ void laserCallback(const sensor_msgs::LaserScan& laser_scan) {
    }
 
 
-   //end of edits
 
    std_msgs::Bool lidar_alarm_msg;
    lidar_alarm_msg.data = laser_alarm_;
@@ -74,17 +78,23 @@ void laserCallback(const sensor_msgs::LaserScan& laser_scan) {
    std_msgs::Float32 lidar_dist_msg;
    lidar_dist_msg.data = ping_dist_in_front_;
    lidar_dist_publisher_.publish(lidar_dist_msg);   
+   if (laser_alarm_==false && triggered_==true){
+      lidar_reset_.call(srv);
+      triggered_=false;
+   }
 }
 
 int main(int argc, char **argv) {
-    ros::init(argc, argv, "alpha_lidar_alarm"); //name this node
+    ros::init(argc, argv, "lidar_alarm"); //name this node
     ros::NodeHandle nh; 
     //create a Subscriber object and have it subscribe to the lidar topic
-    ros::Publisher pub = nh.advertise<std_msgs::Bool>("alpha_lidar_alarm", 1);
+    ros::Publisher pub = nh.advertise<std_msgs::Bool>("lidar_alarm", 1);
     lidar_alarm_publisher_ = pub; // let's make this global, so callback can use it
-    ros::Publisher pub2 = nh.advertise<std_msgs::Float32>("alpha_lidar_dist", 1);  
+    ros::Publisher pub2 = nh.advertise<std_msgs::Float32>("lidar_dist", 1);  
     lidar_dist_publisher_ = pub2;
     ros::Subscriber lidar_subscriber = nh.subscribe("/scan", 1, laserCallback);
+    lidar_trigger_ = nh.serviceClient<std_srvs::Trigger>("estop_service");
+    lidar_reset_ = nh.serviceClient<std_srvs::Trigger>("clear_estop_service");
     ros::spin(); //this is essentially a "while(1)" statement, except it
     // forces refreshing wakeups upon new data arrival
     // main program essentially hangs here, but it must stay alive to keep the callback function alive

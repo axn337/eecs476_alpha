@@ -1,8 +1,4 @@
 # lab3alpha
 
-Your description goes here
-
-## Example usage
-
-## Running tests/demos
+Refer to the writeup.pdf
     
