@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(final_lap)
+project(final_lab)
 
 find_package(catkin_simple REQUIRED)
 
@@ -15,7 +15,15 @@ find_package(catkin_simple REQUIRED)
 #find_package(cmake_modules REQUIRED)
 #find_package(Eigen3 REQUIRED)
 #include_directories(${EIGEN3_INCLUDE_DIR})
+find_package(Boost REQUIRED COMPONENTS system thread)
 #add_definitions(${EIGEN_DEFINITIONS})
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+
+find_package(cmake_modules REQUIRED)
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
+add_definitions(${EIGEN_DEFINITIONS})
+
 
 catkin_simple()
 
@@ -28,6 +36,7 @@ catkin_simple()
 
 # Libraries: uncomment the following and edit arguments to create a new library
 # cs_add_library(my_lib src/my_lib.cpp)   
+cs_add_library(alpha_traj_builder src/alpha_traj_builder.cpp) 
 
 # Executables: uncomment the following and edit arguments to compile new nodes
 # may add more of these lines for more nodes from the same package
