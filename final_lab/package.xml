@@ -31,24 +31,37 @@
   <!-- Dependencies can be catkin packages or system dependencies -->
   <!-- Examples: -->
   <!-- Use build_depend for packages you need at compile time: -->
-  <!--   <build_depend>message_generation</build_depend> -->
+  <build_depend>message_generation</build_depend>
   <!-- Use buildtool_depend for build tool packages: -->
   <!--   <buildtool_depend>catkin</buildtool_depend> -->
   <!-- Use run_depend for packages you need at runtime: -->
-  <!--   <run_depend>message_runtime</run_depend> -->
+  <run_depend>message_runtime</run_depend>
   <!-- Use test_depend for packages you need only for testing: -->
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
   <build_depend>roscpp</build_depend>
 <build_depend>std_msgs</build_depend>
+<build_depend>object_finder</build_depend>
+<build_depend>object_grabber</build_depend>
+<build_depend>actionlib</build_depend>
+<build_depend>simple_action_client</build_depend>
+<build_depend>tf</build_depend>
+<build_depend>std_msgs</build_depend>
+<build_depend>object_manipulation_properties</build_depend>
 <build_depend>geometry_msgs</build_depend>
 <build_depend>nav_msgs</build_depend>
 <build_depend>xform_utils</build_depend>
 <build_depend>odom_tf</build_depend>
   <run_depend>roscpp</run_depend>
+  <run_depend>object_finder</run_depend>
+<run_depend>object_grabber</run_depend>
+<run_depend>actionlib</run_depend>
+<run_depend>simple_action_client</run_depend>
+<run_depend>tf</run_depend>
 <run_depend>std_msgs</run_depend>
 <run_depend>geometry_msgs</run_depend>
+<run_depend>object_manipulation_properties</run_depend> 
 <run_depend>nav_msgs</run_depend>
 <run_depend>xform_utils</run_depend>
 <run_depend>odom_tf</run_depend>

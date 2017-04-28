@@ -23,8 +23,16 @@ using namespace std;
 
 geometry_msgs::PoseStamped g_perceived_object_pose;
 ros::Publisher *g_pose_publisher;
+geometry_msgs::PoseStamped g_des_flange_pose_stamped_wrt_torso;
+geometry_msgs::PoseStamped g_object_pose;
+coordinator::ManipTaskResult g_result;
 
 int g_found_object_code;
+bool g_goal_done = true;
+int g_callback_status = coordinator::ManipTaskResult::PENDING;
+int g_object_grabber_return_code=0;
+int g_object_finder_return_code=0;
+int g_fdbk_count = 0;
 
 geometry_msgs::Quaternion convertPlanarPhi2Quaternion(double phi) {
     geometry_msgs::Quaternion quaternion;
@@ -33,6 +41,52 @@ geometry_msgs::Quaternion convertPlanarPhi2Quaternion(double phi) {
     quaternion.z = sin(phi / 2.0);
     quaternion.w = cos(phi / 2.0);
     return quaternion;
+}
+
+void doneCb(const actionlib::SimpleClientGoalState& state,
+        const coordinator::ManipTaskResultConstPtr& result) {
+    ROS_INFO(" doneCb: server responded with state [%s]", state.toString().c_str());
+    g_goal_done = true;
+    g_result = *result;
+    g_callback_status = result->manip_return_code;
+
+    switch (g_callback_status) {
+        case coordinator::ManipTaskResult::MANIP_SUCCESS:
+            ROS_INFO("returned MANIP_SUCCESS");
+            
+            break;
+            
+        case coordinator::ManipTaskResult::FAILED_PERCEPTION:
+            ROS_WARN("returned FAILED_PERCEPTION");
+            g_object_finder_return_code = result->object_finder_return_code;
+            break;
+        case coordinator::ManipTaskResult::FAILED_PICKUP:
+            ROS_WARN("returned FAILED_PICKUP");
+            g_object_grabber_return_code= result->object_grabber_return_code;
+            g_object_pose = result->object_pose;
+            //g_des_flange_pose_stamped_wrt_torso = result->des_flange_pose_stamped_wrt_torso;
+            break;
+        case coordinator::ManipTaskResult::FAILED_DROPOFF:
+            ROS_WARN("returned FAILED_DROPOFF");
+            //g_des_flange_pose_stamped_wrt_torso = result->des_flange_pose_stamped_wrt_torso;          
+            break;
+    }
+}
+
+//optional feedback; output has been suppressed (commented out) below
+void feedbackCb(const coordinator::ManipTaskFeedbackConstPtr& fdbk_msg) {
+    g_fdbk_count++;
+    if (g_fdbk_count > 1000) { //slow down the feedback publications
+        g_fdbk_count = 0;
+        //suppress this feedback output
+        //ROS_INFO("feedback status = %d", fdbk_msg->feedback_status);
+    }
+    //g_fdbk = fdbk_msg->feedback_status; //make status available to "main()"
+}
+
+// Called once when the goal becomes active; not necessary, but possibly useful for diagnostics
+void activeCb() {
+    ROS_INFO("Goal just went active");
 }
 
 void objectFinderDoneCb(const actionlib::SimpleClientGoalState& state,
@@ -79,7 +133,7 @@ int main(int argc, char **argv) {
     geometry_msgs::PoseStamped pose_stamped;
     pose_stamped.header.frame_id = "world";
     geometry_msgs::Pose pose;
-    pose.position.x = 4.0; // say desired x-coord is 5
+    pose.position.x = 3.7; // say desired x-coord is 5
     pose.position.y = 0.0;
     pose.position.z = 0.0; // let's hope so!
     quat = convertPlanarPhi2Quaternion(0);
@@ -87,7 +141,7 @@ int main(int argc, char **argv) {
     pose_stamped.pose = pose;
     path_srv.request.path.poses.push_back(pose_stamped);
  
-    pose.position.y = 2.5;
+    pose.position.y = 2.1;
     pose_stamped.pose = pose;
     path_srv.request.path.poses.push_back(pose_stamped);
 
@@ -95,6 +149,11 @@ int main(int argc, char **argv) {
 
     //wait for robot to reach stool
     ROS_INFO("Waiting for Jynx to reach the stool");
+    while(path_srv.response.status!=true){
+	ros::Duration(0.1).sleep();
+    }
+
+     ROS_INFO("path executed");
 
     ////////////////////////////////////////////////
 
@@ -105,7 +164,7 @@ int main(int argc, char **argv) {
     XformUtils xform_utils; //instantiate an object of XformUtils
 
     actionlib::SimpleActionClient<coordinator::ManipTaskAction> action_client("manip_task_action_service", true);
-    ros::ServiceClient nav_move_client = nh.serviceClient<coordinator::OpenLoopNavSvc>("open_loop_nav_service");
+    ros::ServiceClient nav_move_client = n.serviceClient<coordinator::OpenLoopNavSvc>("open_loop_nav_service");
 
     // attempt to connect to the server:
     ROS_INFO("waiting for the manipulation action server: ");
@@ -197,11 +256,7 @@ int main(int argc, char **argv) {
     openLoopNavSvcMsg.request.move_distance= -1.0; // back up 1m
     nav_move_client.call(openLoopNavSvcMsg);
     ros::Duration(1.0).sleep(); //wait to settle down
-    tfListener.lookupTransform("map","base_link", ros::Time(0), tfBaseLinkWrtMap);
-    current_pose = xform_utils.get_pose_from_stamped_tf(tfBaseLinkWrtMap);
-    xform_utils.printStampedPose(current_pose);    
-    double yaw = xform_utils.convertPlanarQuat2Phi(current_pose.pose.orientation);
-    ROS_INFO("yaw = %f",yaw);
+    
 
 
 
@@ -209,24 +264,21 @@ int main(int argc, char **argv) {
 
     ROS_INFO("Time to go back");
 
-    mobot_pub_des_state::path path_srv;
+    mobot_pub_des_state::path path_srv_return;
     
     //create some path points...this should be done by some intelligent algorithm, but we'll hard-code it here
-    geometry_msgs::PoseStamped pose_stamped;
-    pose_stamped.header.frame_id = "world";
-    geometry_msgs::Pose pose;
-    pose.position.x = 4.0; // say desired x-coord is 5
+    pose.position.x = 3.7; // say desired x-coord is 5
     pose.position.y = 0.0;
     pose.position.z = 0.0; // let's hope so!
     quat = convertPlanarPhi2Quaternion(0);
     pose.orientation = quat;
     pose_stamped.pose = pose;
-    path_srv.request.path.poses.push_back(pose_stamped);
+    path_srv_return.request.path.poses.push_back(pose_stamped);
  
-    pose.position.y = 2.5;
+    pose.position.x = 0.0;
     pose_stamped.pose = pose;
-    path_srv.request.path.poses.push_back(pose_stamped);
+    path_srv_return.request.path.poses.push_back(pose_stamped);
 
-    client.call(path_srv);
+    client.call(path_srv_return);
     return 0;
 }
