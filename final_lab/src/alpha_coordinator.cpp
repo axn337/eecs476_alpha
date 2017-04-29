@@ -160,14 +160,13 @@ int main(int argc, char **argv) {
     //Start finding block
     coordinator::ManipTaskGoal goal;
     coordinator::OpenLoopNavSvc openLoopNavSvcMsg;
-    tf::TransformListener tfListener;
-    XformUtils xform_utils; //instantiate an object of XformUtils
 
-    actionlib::SimpleActionClient<coordinator::ManipTaskAction> action_client("manip_task_action_service", true);
     ros::ServiceClient nav_move_client = n.serviceClient<coordinator::OpenLoopNavSvc>("open_loop_nav_service");
 
+    actionlib::SimpleActionClient<coordinator::ManipTaskAction> action_client("manip_task_action_service", true);
+
     // attempt to connect to the server:
-    ROS_INFO("waiting for the manipulation action server: ");
+    ROS_INFO("waiting for server: ");
     bool server_exists = false;
     while ((!server_exists)&&(ros::ok())) {
         server_exists = action_client.waitForServer(ros::Duration(0.5)); // 
@@ -177,7 +176,7 @@ int main(int argc, char **argv) {
     }
     ROS_INFO("connected to action server"); // if here, then we connected to the server;
 
-    ROS_INFO("sending a goal: move arms to pre-pose");
+    ROS_INFO("sending a goal: move to pre-pose");
     g_goal_done = false;
     goal.action_code = coordinator::ManipTaskGoal::MOVE_TO_PRE_POSE;
     action_client.sendGoal(goal, &doneCb, &activeCb, &feedbackCb);
@@ -215,12 +214,14 @@ int main(int argc, char **argv) {
         return 0;
     }
     g_object_pose = g_result.object_pose;
+    ROS_INFO_STREAM("object pose w/rt frame-id "<<g_object_pose.header.frame_id<<endl);
     ROS_INFO_STREAM("object origin: (x,y,z) = ("<<g_object_pose.pose.position.x<<", "<<g_object_pose.pose.position.y<<", "
               <<g_object_pose.pose.position.z<<")"<<endl);
     ROS_INFO_STREAM("orientation: (qx,qy,qz,qw) = ("<<g_object_pose.pose.orientation.x<<","
               <<g_object_pose.pose.orientation.y<<","
               <<g_object_pose.pose.orientation.z<<","
-              <<g_object_pose.pose.orientation.w<<")"<<endl);    
+              <<g_object_pose.pose.orientation.w<<")"<<endl); 
+    
     
     //send command to acquire block:
     ROS_INFO("sending a goal: grab block");
@@ -228,7 +229,6 @@ int main(int argc, char **argv) {
     goal.action_code = coordinator::ManipTaskGoal::GRAB_OBJECT;
     goal.pickup_frame = g_result.object_pose;
     goal.object_code= ObjectIdCodes::TOY_BLOCK_ID;
-    //goal.perception_source= coordinator::ManipTaskGoal::BLIND_MANIP;
     action_client.sendGoal(goal, &doneCb, &activeCb, &feedbackCb);
     while (!g_goal_done) {
         ros::Duration(0.1).sleep();
@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
         return 0;
     }
     
-    ROS_INFO("sending a goal: move arms to pre-pose");
+    ROS_INFO("sending a goal: move to pre-pose");
     g_goal_done = false;
     goal.action_code = coordinator::ManipTaskGoal::MOVE_TO_PRE_POSE;
     action_client.sendGoal(goal, &doneCb, &activeCb, &feedbackCb);
@@ -251,7 +251,9 @@ int main(int argc, char **argv) {
         ROS_ERROR("failed to move to pre-pose; quitting");
         return 0;
     }
-    
+     
+//////////////////////////////////////////////////////////
+
     ROS_INFO("backing up");
     openLoopNavSvcMsg.request.move_distance= -1.0; // back up 1m
     nav_move_client.call(openLoopNavSvcMsg);
