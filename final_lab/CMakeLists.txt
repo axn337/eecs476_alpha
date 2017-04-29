@@ -47,6 +47,8 @@ cs_add_executable(alpha_pub_des_state_path_client src/alpha_pub_des_state_path_c
 cs_add_executable(alpha_open_loop_controller src/alpha_open_loop_controller.cpp)
 cs_add_executable(alpha_lin_steering src/alpha_lin_steering.cpp)
 cs_add_executable(alpha_coordinator src/alpha_coordinator.cpp)
+cs_add_executable(alpha_object_finder_as src/alpha_object_finder_as.cpp)
+cs_add_executable(alpha_coordinator_no_arms src/alpha_coordinator_no_arms.cpp)
 
 #the following is required, if desire to link a node in this package with a library created in this same package
 # edit the arguments to reference the named node and named library within this package
