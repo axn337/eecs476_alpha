@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <mobot_pub_des_state/path.h>
+#include <final_lab/path.h>
 #include <iostream>
 #include <string>
 #include <nav_msgs/Path.h>
@@ -12,7 +12,7 @@
 #include <object_finder/objectFinderAction.h>
 #include <object_grabber/object_grabberAction.h>
 #include <coordinator/OpenLoopNavSvc.h>
-#include <mobot_pub_des_state/path.h>
+#include <final_lab/path.h>
 #include <Eigen/Eigen>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
@@ -118,7 +118,7 @@ void objectFinderDoneCb(const actionlib::SimpleClientGoalState& state,
 int main(int argc, char **argv) {
     ros::init(argc, argv, "append_path_client");
     ros::NodeHandle n;
-    ros::ServiceClient client = n.serviceClient<mobot_pub_des_state::path>("append_path_queue_service");
+    ros::ServiceClient client = n.serviceClient<final_lab::path>("append_path_queue_service");
     geometry_msgs::Quaternion quat;
     
     ROS_INFO("Creating path trajectory");
@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
       ros::Duration(1.0).sleep();
     }
     ROS_INFO("connected client to service");
-    mobot_pub_des_state::path path_srv;
+    final_lab::path path_srv;
     
     //create some path points...this should be done by some intelligent algorithm, but we'll hard-code it here
     geometry_msgs::PoseStamped pose_stamped;
@@ -264,7 +264,7 @@ int main(int argc, char **argv) {
 
     ROS_INFO("Time to go back");
 
-    mobot_pub_des_state::path path_srv_return;
+    final_lab::path path_srv_return;
     
     //create some path points...this should be done by some intelligent algorithm, but we'll hard-code it here
     pose.position.x = 3.7; // say desired x-coord is 5

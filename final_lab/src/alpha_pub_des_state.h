@@ -10,6 +10,7 @@
 #include <final_lab/path.h>
 #include <std_msgs/Float64.h>
 
+
 //constants and parameters:
 const double dt = 0.02; //send desired-state messages at fixed rate, e.g. 0.02 sec = 50Hz
 //dynamic parameters: should be tuned for target system
@@ -60,6 +61,7 @@ private:
     double speed_max_; 
     double omega_max_; 
     double path_move_tol_; 
+    std_msgs::Bool path_done_;
 
     // some objects to support service and publisher
     ros::ServiceServer estop_service_;
@@ -76,6 +78,7 @@ private:
     
     ros::Publisher desired_state_publisher_;
     ros::Publisher des_psi_publisher_;
+    ros::Publisher path_done_publisher;
     
     //a trajectory-builder object; 
     AlphaTrajBuilder trajBuilder_; 

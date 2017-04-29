@@ -60,6 +60,7 @@ void AlphaDesStatePublisher::initializeServices() {
             &AlphaDesStatePublisher::flushPathQueueCB, this);
     append_path_ = nh_.advertiseService("append_path_queue_service",
             &AlphaDesStatePublisher::appendPathQueueCB, this);
+
     
 }
 
@@ -75,6 +76,7 @@ void AlphaDesStatePublisher::initializePublishers() {
     ROS_INFO("Initializing Publishers");
     desired_state_publisher_ = nh_.advertise<nav_msgs::Odometry>("/desState", 1, true);
     des_psi_publisher_ = nh_.advertise<std_msgs::Float64>("/desPsi", 1);
+    path_done_publisher= nh_.advertise<std_msgs::Bool>("/path_done", 1);
 }
 
 // Following code added by Jonathan
@@ -152,6 +154,7 @@ bool AlphaDesStatePublisher::appendPathQueueCB(final_lab::pathRequest& request, 
     for (int i = 0; i < npts; i++) {
         path_queue_.push(request.path.poses[i]);
     }
+    
     return true;
 }
 
@@ -178,6 +181,11 @@ void AlphaDesStatePublisher::set_init_pose(double x, double y, double psi) {
 
 void AlphaDesStatePublisher::pub_next_state() {
     // first test if an e-stop has been triggered
+    if(!path_queue_.empty()){
+		path_done_.data=false;
+		path_done_publisher.publish(path_done_);
+	}
+	
     if (e_stop_trigger_) { 
 		ROS_WARN("in estop mode before trajbuilder");
         e_stop_trigger_ = false; //reset trigger
@@ -281,4 +289,8 @@ void AlphaDesStatePublisher::pub_next_state() {
             desired_state_publisher_.publish(current_des_state_);
             break;
     }
+    while(path_queue_.empty()){
+		path_done_.data=true;
+		path_done_publisher.publish(path_done_);
+	}
 }
