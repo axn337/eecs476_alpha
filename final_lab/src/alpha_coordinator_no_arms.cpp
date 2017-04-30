@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
     pose_stamped.pose = pose;
     path_srv.request.path.poses.push_back(pose_stamped);
  
-    pose.position.y = 2.1;
+    pose.position.y = 1;
     pose_stamped.pose = pose;
     path_srv.request.path.poses.push_back(pose_stamped);
 
@@ -104,7 +104,11 @@ int main(int argc, char **argv) {
 
     ros::ServiceClient nav_move_client = n.serviceClient<coordinator::OpenLoopNavSvc>("open_loop_nav_service");
 
-    
+    ROS_INFO("approach stool");
+    openLoopNavSvcMsg.request.move_distance= 1.0; // back up 1m
+    nav_move_client.call(openLoopNavSvcMsg);
+    ros::Duration(3.0).sleep(); //wait to settle down
+
     ROS_INFO("backing up");
     openLoopNavSvcMsg.request.move_distance= -1.0; // back up 1m
     nav_move_client.call(openLoopNavSvcMsg);
@@ -123,13 +127,13 @@ int main(int argc, char **argv) {
     pose.position.x = 3.7; // say desired x-coord is 5
     pose.position.y = 0.0;
     pose.position.z = 0.0; // let's hope so!
-    quat = convertPlanarPhi2Quaternion(0);
+    quat = convertPlanarPhi2Quaternion(-1.57);
     pose.orientation = quat;
     pose_stamped.pose = pose;
     path_srv_return.request.path.poses.push_back(pose_stamped);
  
 
-    pose.position.y = 0.0;
+    pose.position.x = 0.0;
     pose_stamped.pose = pose;
     path_srv_return.request.path.poses.push_back(pose_stamped);
 
