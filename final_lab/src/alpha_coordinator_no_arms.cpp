@@ -58,7 +58,10 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "append_path_client");
     ros::NodeHandle n;
     ros::ServiceClient client = n.serviceClient<final_lab::path>("append_path_queue_service");
+    ros::Publisher gripper = n.advertise<std_msgs::Bool>("close_gripper", 1);
     geometry_msgs::Quaternion quat;
+    std_msgs::Bool grab;
+    grab.data = false;
 
     
     ROS_INFO("Creating path trajectory");
@@ -69,6 +72,10 @@ int main(int argc, char **argv) {
     ROS_INFO("connected client to service");
     final_lab::path path_srv;
     
+
+
+
+
     //create some path points...this should be done by some intelligent algorithm, but we'll hard-code it here
     geometry_msgs::PoseStamped pose_stamped;
     pose_stamped.header.frame_id = "world";
@@ -109,6 +116,22 @@ int main(int argc, char **argv) {
     nav_move_client.call(openLoopNavSvcMsg);
     ros::Duration(3.0).sleep(); //wait to settle down
 
+    //search
+    //position
+    //grab
+    
+    grab.data = true;
+	ros::Time start =  ros::Time::now();   
+    while((ros::Time::now() - start) < ros::Duration(3)) {
+    	gripper.publish(grab);
+    	ros::spinOnce();
+    }
+
+    ROS_INFO("moving on");
+
+    //retract
+
+
     ROS_INFO("backing up");
     openLoopNavSvcMsg.request.move_distance= -1.0; // back up 1m
     nav_move_client.call(openLoopNavSvcMsg);
@@ -142,5 +165,7 @@ int main(int argc, char **argv) {
     path_srv_return.request.path.poses.push_back(pose_stamped);
 
     client.call(path_srv_return);
+    
     return 0;
+
 }
