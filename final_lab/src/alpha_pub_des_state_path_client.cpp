@@ -16,19 +16,22 @@ bool path_done=false;
 
 void doneCB(const std_msgs::Bool& done){
 	  
-	  ROS_INFO("path isn't done yet"); 
+    //ROS_INFO("path isn't done yet"); 
 
-	  ros::Duration(2).sleep();
-	  
-	  while(!path_done){
-		ros::Duration(0.1).sleep();
-		ROS_INFO("topic path_done is publishing %d", done.data); 
+    //ros::Duration(0.1).sleep();
 
-		path_done=done.data;
-      }
+    //while(!path_done){
+    //ros::Duration(0.1).sleep();
+    
+   // if(done.data){
+        path_done=done.data;
+    //}
+   // ROS_INFO("topic path_done is publishing %d", done.data); 
 
-     ROS_INFO("path executed");
-  }
+    //}
+
+    //ROS_INFO("path executed");
+}
 	  
 geometry_msgs::Quaternion convertPlanarPhi2Quaternion(double phi) {
     geometry_msgs::Quaternion quaternion;
@@ -43,9 +46,10 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "append_path_client");
     ros::NodeHandle n;
     ros::ServiceClient client = n.serviceClient<final_lab::path>("append_path_queue_service");
-    ros::Subscriber path_done_subscriber= n.subscribe("path_done",1,doneCB); 
     geometry_msgs::Quaternion quat;
     
+    path_done=false;
+
     while (!client.exists()) {
       ROS_INFO("waiting for service...");
       ros::Duration(1.0).sleep();
@@ -85,9 +89,15 @@ int main(int argc, char **argv) {
     
     client.call(path_srv);
 
-   
-     
-     ros::spinOnce(); 
+    ros::Subscriber path_done_subscriber= n.subscribe("path_done",1,doneCB); 
+
+    while(path_done!=true){
+        ros::Duration(0.1).sleep();
+        ros::spinOnce();
+    }
+
+    ROS_INFO("path executed");
+ 
 
 	
 

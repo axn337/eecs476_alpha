@@ -19,7 +19,10 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <tf/transform_listener.h>
 #include <xform_utils/xform_utils.h>
+#include <std_msgs/Bool.h>
+
 using namespace std;
+bool path_done=false;
 
 geometry_msgs::PoseStamped g_perceived_object_pose;
 ros::Publisher *g_pose_publisher;
@@ -43,13 +46,20 @@ geometry_msgs::Quaternion convertPlanarPhi2Quaternion(double phi) {
     return quaternion;
 }
 
+void doneCB(const std_msgs::Bool& done){
+      
+//    ROS_INFO("path isn't done yet"); 
+   
+    path_done=done.data;
 
+}
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "append_path_client");
     ros::NodeHandle n;
     ros::ServiceClient client = n.serviceClient<final_lab::path>("append_path_queue_service");
     geometry_msgs::Quaternion quat;
+
     
     ROS_INFO("Creating path trajectory");
     while (!client.exists()) {
@@ -77,10 +87,14 @@ int main(int argc, char **argv) {
 
     client.call(path_srv);
 
+
+    ros::Subscriber path_done_subscriber= n.subscribe("path_done",1,doneCB); 
+
     //wait for robot to reach stool
     ROS_INFO("Waiting for Jynx to reach the stool");
-    while(path_srv.response.status!=true){
+    while(path_done!=true){
 	ros::Duration(0.1).sleep();
+    ros::spinOnce();
     }
 
      ROS_INFO("path executed");
@@ -114,7 +128,8 @@ int main(int argc, char **argv) {
     pose_stamped.pose = pose;
     path_srv_return.request.path.poses.push_back(pose_stamped);
  
-    pose.position.x = 0.0;
+
+    pose.position.y = 0.0;
     pose_stamped.pose = pose;
     path_srv_return.request.path.poses.push_back(pose_stamped);
 

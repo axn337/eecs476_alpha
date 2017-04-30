@@ -105,13 +105,15 @@ void SteeringController::initializePublishers()
 void SteeringController::doneCB(const std_msgs::Bool& done){
 	
 
-	  //ros::Duration(2).sleep();
+	//  ros::Duration(2).sleep();
 	 
+   path_done=done.data;
 
-	while(done.data){
-		path_done=true;
-		};
-
+	/*/if(done.data){
+	   path_done=true;
+       ros::Duration(0.2).sleep();
+    }/*/
+    ROS_INFO("path_done=%d",path_done);
 
 }
 void SteeringController::odomCallback(const nav_msgs::Odometry& odom_rcvd) {
@@ -246,9 +248,10 @@ void SteeringController::lin_steering_algorithm() {
     twist_cmd2_.twist = twist_cmd_; // copy the twist command into twist2 message
     twist_cmd2_.header.stamp = ros::Time::now(); // look up the time and put it in the header 
     if(!path_done){
-    cmd_publisher_.publish(twist_cmd_);  
-    cmd_publisher2_.publish(twist_cmd2_);
-	}     
+        cmd_publisher_.publish(twist_cmd_);  
+        cmd_publisher2_.publish(twist_cmd2_);
+        ros::spinOnce();
+    }
 }
 
 int main(int argc, char** argv) 

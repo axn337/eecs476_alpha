@@ -40,4 +40,8 @@ Running Publisher and client:
 rosrun final_lab alpha_pub_des_state_path_client 
 rosrun final_lab alpha_pub_des_state
 
+rosrun coordinator open_loop_nav_service
+
+rosrun final_lab alpha_coordinator_no_arms
+
 rosrun example_rviz_marker triad_display
