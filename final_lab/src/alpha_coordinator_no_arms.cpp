@@ -124,6 +124,7 @@ int main(int argc, char **argv) {
 	ros::Time start =  ros::Time::now();   
     while((ros::Time::now() - start) < ros::Duration(3)) {
     	gripper.publish(grab);
+    	ros::Duration(0.1);
     	ros::spinOnce();
     }
 
