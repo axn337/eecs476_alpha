@@ -77,6 +77,8 @@ void SteeringController::initializeSubscribers() {
     odom_subscriber_ = nh_.subscribe("/odom", 1, &SteeringController::odomCallback, this); //subscribe to odom messages
     // add more subscribers here, as needed
     des_state_subscriber_ = nh_.subscribe("/desState", 1, &SteeringController::desStateCallback, this); // for desired state messages
+    path_done_subscriber= nh_.subscribe("path_done",1,&SteeringController::doneCB, this); 
+
 }
 
 //member helper function to set up services:
@@ -100,9 +102,20 @@ void SteeringController::initializePublishers()
     cmd_publisher2_ = nh_.advertise<geometry_msgs::TwistStamped>("cmd_vel_stamped",1, true); //alt topic, includes time stamp
     //steering_errs_publisher_ =  nh_.advertise<std_msgs::Float32MultiArray>("steering_errs",1, true);
 }
+void SteeringController::doneCB(const std_msgs::Bool& done){
+	
 
+	//  ros::Duration(2).sleep();
+	 
+   path_done=done.data;
 
+	/*/if(done.data){
+	   path_done=true;
+       ros::Duration(0.2).sleep();
+    }/*/
+    ROS_INFO("path_done=%d",path_done);
 
+}
 void SteeringController::odomCallback(const nav_msgs::Odometry& odom_rcvd) {
     // copy some of the components of the received message into member vars
     // we care about speed and spin, as well as position estimates x,y and heading
@@ -120,6 +133,7 @@ void SteeringController::odomCallback(const nav_msgs::Odometry& odom_rcvd) {
     //odom_xy_vec_(0) = odom_x_;
     //odom_xy_vec_(1) = odom_y_;   
 }
+
 
 void SteeringController::desStateCallback(const nav_msgs::Odometry& des_state_rcvd) {
     // copy some of the components of the received message into member vars
@@ -233,8 +247,11 @@ void SteeringController::lin_steering_algorithm() {
     twist_cmd_.angular.z = controller_omega;
     twist_cmd2_.twist = twist_cmd_; // copy the twist command into twist2 message
     twist_cmd2_.header.stamp = ros::Time::now(); // look up the time and put it in the header 
-    cmd_publisher_.publish(twist_cmd_);  
-    cmd_publisher2_.publish(twist_cmd2_);     
+    if(!path_done){
+        cmd_publisher_.publish(twist_cmd_);  
+        cmd_publisher2_.publish(twist_cmd2_);
+        ros::spinOnce();
+    }
 }
 
 int main(int argc, char** argv) 

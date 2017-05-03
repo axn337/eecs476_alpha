@@ -59,6 +59,11 @@ private:
     ros::Subscriber odom_subscriber_; //these will be set up within the class constructor, hiding these ugly details
     ros::Subscriber des_state_subscriber_;
     
+    //path done subscription
+    ros::Subscriber path_done_subscriber;
+    
+    bool path_done= false;
+    
     ros::Publisher cmd_publisher_; // = nh.advertise<geometry_msgs::Twist>("cmd_vel",1);
     ros::Publisher cmd_publisher2_; // = nh.advertise<geometry_msgs::TwistStamped>("cmd_vel_stamped",1);
     ros::Publisher steering_errs_publisher_;
@@ -104,7 +109,8 @@ private:
     void initializeServices();
  
     void odomCallback(const nav_msgs::Odometry& odom_rcvd);
-    void desStateCallback(const nav_msgs::Odometry& des_state_rcvd);    
+    void desStateCallback(const nav_msgs::Odometry& des_state_rcvd);  
+    void doneCB(const std_msgs::Bool& done);  
         
 }; 
 

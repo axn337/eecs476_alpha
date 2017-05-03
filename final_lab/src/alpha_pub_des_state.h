@@ -73,7 +73,10 @@ private:
 
 //    ros::Publisher lidar_alarm_publisher_;
 //    ros::Publisher lidar_dist_publisher_;
-    
+    std_msgs::Bool path_done_;
+
+    ros::Publisher path_done_publisher;
+
     ros::Publisher desired_state_publisher_;
     ros::Publisher des_psi_publisher_;
     

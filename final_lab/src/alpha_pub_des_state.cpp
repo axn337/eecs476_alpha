@@ -75,6 +75,8 @@ void AlphaDesStatePublisher::initializePublishers() {
     ROS_INFO("Initializing Publishers");
     desired_state_publisher_ = nh_.advertise<nav_msgs::Odometry>("/desState", 1, true);
     des_psi_publisher_ = nh_.advertise<std_msgs::Float64>("/desPsi", 1);
+    path_done_publisher= nh_.advertise<std_msgs::Bool>("/path_done", 1);
+
 }
 
 // Following code added by Jonathan
@@ -84,16 +86,16 @@ void AlphaDesStatePublisher::alarmCB(const std_msgs::Bool& alarm_msg)
   g_lidar_alarm = alarm_msg.data; 
   if (g_lidar_alarm) {
      ROS_WARN("lidar stop!!"); 
-	if (!on_alarm) {
-		on_alarm = true;
+    if (!on_alarm) {
+        on_alarm = true;
                 e_stop_trigger_ = true;
                        }
                      }
   else {
-	if (on_alarm) {
-		ROS_INFO("lidar stop reset");
-		on_alarm = false;
-		e_stop_reset_ = true;
+    if (on_alarm) {
+        ROS_INFO("lidar stop reset");
+        on_alarm = false;
+        e_stop_reset_ = true;
                       }
        }
 }
@@ -107,16 +109,16 @@ void AlphaDesStatePublisher::estopCB(const std_msgs::Bool& estop_msg)
   e_stop_alarm = estop_msg.data;
   if (e_stop_alarm) {
      ROS_WARN("ESTOP ACTIVATED");
-	if (!e_stop_on) {
-		e_stop_on = true;
+    if (!e_stop_on) {
+        e_stop_on = true;
                 e_stop_trigger_ = true;
                        }
                      }
   else {
-	if (e_stop_on) {
-		ROS_INFO("estop reset");
-		e_stop_on = false;
-		e_stop_reset_ = true;
+    if (e_stop_on) {
+        ROS_INFO("estop reset");
+        e_stop_on = false;
+        e_stop_reset_ = true;
                       }
        }
  
@@ -124,8 +126,8 @@ void AlphaDesStatePublisher::estopCB(const std_msgs::Bool& estop_msg)
 
 bool AlphaDesStatePublisher::estopServiceCallback(std_srvs::TriggerRequest& request, std_srvs::TriggerResponse& response) {
 ROS_INFO("Estop trigger service callback");
-	on_alarm = true; // 
-	e_stop_trigger_ = true; // 
+    on_alarm = true; // 
+    e_stop_trigger_ = true; // 
 }
 
 bool AlphaDesStatePublisher::clearEstopServiceCallback(std_srvs::TriggerRequest& request, std_srvs::TriggerResponse& response) {
@@ -178,8 +180,13 @@ void AlphaDesStatePublisher::set_init_pose(double x, double y, double psi) {
 
 void AlphaDesStatePublisher::pub_next_state() {
     // first test if an e-stop has been triggered
+    if(!path_queue_.empty()){
+        path_done_.data=false;
+        path_done_publisher.publish(path_done_);
+    }
+
     if (e_stop_trigger_) { 
-		ROS_WARN("in estop mode before trajbuilder");
+        ROS_WARN("in estop mode before trajbuilder");
         e_stop_trigger_ = false; //reset trigger
         //compute a halt trajectory
         trajBuilder_.build_braking_traj(current_pose_, des_state_vec_);
@@ -227,9 +234,9 @@ void AlphaDesStatePublisher::pub_next_state() {
                 current_des_state_ = seg_end_state_;
                 motion_mode_ = E_STOPPED; //change state to remain halted                    
             }
-			else {
-			     motion_mode_ = E_STOPPED; //change state to remain halted
-			     }  
+            else {
+                 motion_mode_ = E_STOPPED; //change state to remain halted
+                 }  
             break;
 
         case PURSUING_SUBGOAL: //if have remaining pts in computed traj, send them
@@ -280,5 +287,9 @@ void AlphaDesStatePublisher::pub_next_state() {
             ROS_WARN("motion mode not recognized!");
             desired_state_publisher_.publish(current_des_state_);
             break;
+    }
+    if(path_queue_.empty()){
+        path_done_.data=true;
+        path_done_publisher.publish(path_done_);
     }
 }
